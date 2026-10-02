@@ -26,6 +26,10 @@ function NetworkCanvas({
   linkMode,
   setLinkMode,
   onEdgeSelect,
+  onToggleEdgeFailure,
+  onToggleRouterFailure,
+  onNodeSelect,
+  packets = [],
   routePath,
 }) {
 
@@ -36,24 +40,47 @@ function NetworkCanvas({
 
   const onNodesChange = (changes) => {
 
-    setNodes((currentNodes) => {
+    /*
+     * Packet nodes are generated
+     * automatically.
+     *
+     * We should only allow React Flow
+     * changes to affect actual router
+     * nodes.
+     */
 
-      const updatedNodes =
-        applyNodeChanges(
-          changes,
-          currentNodes
-        );
+    const routerChanges =
+      changes.filter(
+        (change) => {
 
+          if (
+            change.id?.startsWith(
+              "packet-"
+            )
+          ) {
+            return false;
+          }
 
-      console.log(
-        "React Flow nodes:",
-        updatedNodes
+          return true;
+
+        }
       );
 
 
-      return updatedNodes;
+    setNodes(
+      (currentNodes) => {
 
-    });
+        const updatedNodes =
+          applyNodeChanges(
+            routerChanges,
+            currentNodes
+          );
+
+
+        return updatedNodes;
+
+      }
+    );
 
   };
 
@@ -64,11 +91,12 @@ function NetworkCanvas({
 
   const onEdgesChange = (changes) => {
 
-    setEdges((currentEdges) =>
-      applyEdgeChanges(
-        changes,
-        currentEdges
-      )
+    setEdges(
+      (currentEdges) =>
+        applyEdgeChanges(
+          changes,
+          currentEdges
+        )
     );
 
   };
@@ -102,7 +130,7 @@ function NetworkCanvas({
 
 
       // -------------------------------------
-      // Cost label
+      // COST LABEL
       // -------------------------------------
 
       labelStyle: {
@@ -146,7 +174,7 @@ function NetworkCanvas({
 
 
       // -------------------------------------
-      // Link data
+      // LINK DATA
       // -------------------------------------
 
       data: {
@@ -163,11 +191,20 @@ function NetworkCanvas({
         packetLoss:
           0,
 
+        failed:
+          false,
+
+        direction:
+          "bidirectional",
+
+        linkType:
+          "ethernet",
+
       },
 
 
       // -------------------------------------
-      // Link style
+      // LINK STYLE
       // -------------------------------------
 
       style: {
@@ -183,11 +220,12 @@ function NetworkCanvas({
     };
 
 
-    setEdges((currentEdges) =>
-      addEdge(
-        newEdge,
-        currentEdges
-      )
+    setEdges(
+      (currentEdges) =>
+        addEdge(
+          newEdge,
+          currentEdges
+        )
     );
 
 
@@ -207,8 +245,39 @@ function NetworkCanvas({
 
     event.stopPropagation();
 
+    if (event.shiftKey) {
+      onToggleEdgeFailure?.(edge.id);
+      return;
+    }
+
     onEdgeSelect(edge);
 
+  };
+
+
+  // =========================================
+  // ROUTER FAILURE
+  // =========================================
+
+  const onNodeDoubleClick = (
+    event,
+    node
+  ) => {
+
+    event.stopPropagation();
+
+    onToggleRouterFailure?.(node.id);
+
+  };
+
+
+  // =========================================
+  // ROUTER SELECT
+  // =========================================
+
+  const onNodeClick = (event, node) => {
+    event.stopPropagation();
+    onNodeSelect?.(node);
   };
 
 
@@ -261,16 +330,16 @@ function NetworkCanvas({
 
       const sameDirection =
         edge.source ===
-          routeSource &&
+        routeSource &&
         edge.target ===
-          routeTarget;
+        routeTarget;
 
 
       const reverseDirection =
         edge.source ===
-          routeTarget &&
+        routeTarget &&
         edge.target ===
-          routeSource;
+        routeSource;
 
 
       if (
@@ -291,6 +360,41 @@ function NetworkCanvas({
 
 
   // =========================================
+  // CONGESTION COUNT
+  // =========================================
+
+  const getEdgeLoad = (edge) => {
+
+    return packets.filter((packet) => {
+
+      if (
+        packet.status === "delivered" ||
+        packet.status === "lost"
+      ) {
+        return false;
+      }
+
+      const current =
+        packet.path?.[packet.currentHop];
+
+      const next =
+        packet.path?.[packet.currentHop + 1];
+
+      return (
+        (
+          current === edge.source &&
+          next === edge.target
+        ) ||
+        (
+          current === edge.target &&
+          next === edge.source
+        )
+      );
+    }).length;
+  };
+
+
+  // =========================================
   // DISPLAY EDGES
   // =========================================
 
@@ -300,24 +404,47 @@ function NetworkCanvas({
       const isRouteEdge =
         isEdgeInRoute(edge);
 
+      const edgeLoad =
+        getEdgeLoad(edge);
+
+      const isFailed =
+        Boolean(edge.data?.failed);
+
+      const isCongested =
+        !isFailed && edgeLoad >= 3;
+
 
       return {
 
         ...edge,
 
+        label:
+          isFailed
+            ? "FAILED"
+            : edge.data?.direction === "forward"
+              ? `${edge.data?.cost ?? 1} →`
+              : edge.data?.direction === "reverse"
+                ? `${edge.data?.cost ?? 1} ←`
+                : edgeLoad > 0
+                  ? `${edge.data?.cost ?? 1} · ${edgeLoad} pkt`
+                  : `${edge.data?.cost ?? 1}`,
 
         // -----------------------------------
-        // Edge class
+        // EDGE CLASS
         // -----------------------------------
 
         className:
-          isRouteEdge
-            ? "route-edge"
-            : "normal-edge",
+          isFailed
+            ? "failed-edge"
+            : isCongested
+              ? "congested-edge"
+              : isRouteEdge
+                ? "route-edge"
+                : "normal-edge",
 
 
         // -----------------------------------
-        // Edge style
+        // EDGE STYLE
         // -----------------------------------
 
         style: {
@@ -325,23 +452,38 @@ function NetworkCanvas({
           ...edge.style,
 
           stroke:
-            isRouteEdge
-              ? "#f0c674"
-              : "#58a6ff",
+            isFailed
+              ? "#f85149"
+              : isCongested
+                ? "#f0a44b"
+                : isRouteEdge
+                  ? "#f0c674"
+                  : "#58a6ff",
 
           strokeWidth:
-            isRouteEdge
-              ? 5
-              : 2,
+            isFailed
+              ? 3
+              : isRouteEdge
+                ? 5
+                : isCongested
+                  ? 3
+                  : 2,
+
+          strokeDasharray:
+            isFailed
+              ? "8 5"
+              : "0",
 
           opacity:
-            1,
+            isFailed
+              ? 0.85
+              : 1,
 
         },
 
 
         // -----------------------------------
-        // Label style
+        // LABEL STYLE
         // -----------------------------------
 
         labelStyle: {
@@ -364,7 +506,7 @@ function NetworkCanvas({
 
 
         // -----------------------------------
-        // Label background
+        // LABEL BACKGROUND
         // -----------------------------------
 
         labelBgStyle: {
@@ -372,17 +514,27 @@ function NetworkCanvas({
           ...edge.labelBgStyle,
 
           fill:
-            "#ffffff",
+            isFailed
+              ? "#2b1111"
+              : isCongested
+                ? "#2b2111"
+                : "#ffffff",
 
           fillOpacity:
             1,
 
           stroke:
-            isRouteEdge
-              ? "#f0c674"
-              : "#ffffff",
+            isFailed
+              ? "#f85149"
+              : isCongested
+                ? "#f0a44b"
+                : isRouteEdge
+                  ? "#f0c674"
+                  : "#ffffff",
 
           strokeWidth:
+            isFailed ||
+            isCongested ||
             isRouteEdge
               ? 1
               : 0,
@@ -400,6 +552,30 @@ function NetworkCanvas({
 
       };
 
+    });
+
+
+  // =========================================
+  // DISPLAY NODES
+  // =========================================
+
+  const displayNodes =
+    nodes.map((node) => {
+
+      const failed =
+        Boolean(node.data?.failed);
+
+      return {
+        ...node,
+
+        style: {
+          ...node.style,
+          opacity: failed ? 0.45 : 1,
+          filter: failed
+            ? "grayscale(1)"
+            : "none",
+        },
+      };
     });
 
 
@@ -433,9 +609,9 @@ function NetworkCanvas({
 
               : routePath?.length > 0
 
-              ? "Shortest path highlighted"
+                ? "Shortest path highlighted • Shift-click link to fail/restore • Double-click router to fail/restore"
 
-              : "Build and visualize your network"}
+                : "Build and visualize your network • Shift-click link to fail/restore • Double-click router to fail/restore"}
 
           </span>
 
@@ -453,7 +629,7 @@ function NetworkCanvas({
         <ReactFlow
 
           nodes={
-            nodes
+            displayNodes
           }
 
           edges={
@@ -478,6 +654,14 @@ function NetworkCanvas({
 
           onEdgeClick={
             onEdgeClick
+          }
+
+          onNodeClick={
+            onNodeClick
+          }
+
+          onNodeDoubleClick={
+            onNodeDoubleClick
           }
 
           onPaneClick={
