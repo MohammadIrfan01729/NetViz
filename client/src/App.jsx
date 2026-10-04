@@ -1,16 +1,74 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Dashboard from "./pages/Dashboard";
+import {
+  Navigate,
+  Route,
+  Routes,
+} from "react-router-dom";
+
+import {
+  AuthProvider,
+} from "./context/AuthContext";
+
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 import Simulator from "./pages/Simulator";
+import Profile from "./pages/Profile";
+
 
 function App() {
   return (
-    <BrowserRouter>
+    <AuthProvider>
+
       <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/simulator" element={<Simulator />} />
+
+        <Route
+          path="/"
+          element={
+            <Login />
+          }
+        />
+
+        <Route
+          path="/register"
+          element={
+            <Register />
+          }
+        />
+
+        <Route
+          path="/app"
+          element={
+            <ProtectedRoute>
+              <Simulator />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="*"
+          element={
+            <Navigate
+              to="/"
+              replace
+            />
+          }
+        />
+
       </Routes>
-    </BrowserRouter>
+
+    </AuthProvider>
   );
 }
+
 
 export default App;
