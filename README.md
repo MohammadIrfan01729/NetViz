@@ -157,9 +157,9 @@ The backend is responsible for:
 
 ---
 
-# ⭐ Technical Novelty / Interview Highlights
+# ⭐ Technical Novelty
 
-These are the **3 strongest technical points** of NetViz that can be highlighted during interviews.
+These are the **3 strongest technical points** of NetViz.
 
 ## 1️⃣ Interactive Network Topology + Algorithm Visualization
 
@@ -188,10 +188,6 @@ This demonstrates practical integration of:
 - Computer Networks
 - React-based visualization
 
-### Interview Value
-
-This allows us to explain how a theoretical graph algorithm such as **Dijkstra's Algorithm** can be converted into a practical network-routing system.
-
 ---
 
 # 2️⃣ Network Simulation + Real-Time Statistics
@@ -213,10 +209,6 @@ This creates a bridge between:
 
 **Network Theory → Algorithm → Simulation → Visualization**
 
-### Interview Value
-
-This demonstrates understanding of both **Computer Networks and software engineering**, rather than implementing an isolated algorithm.
-
 ---
 
 # 3️⃣ Modular Architecture for Extensible Routing Algorithms
@@ -231,18 +223,6 @@ The architecture provides a foundation for implementing:
 - Different topology models
 - Network health analysis
 - Advanced packet simulation
-
-### Interview Value
-
-This demonstrates:
-
-- Modular design
-- Separation of concerns
-- Extensibility
-- Algorithm abstraction
-- Scalable software architecture
-
-Instead of building the project only for one algorithm, the system is designed as a **network simulation platform**.
 
 ---
 
