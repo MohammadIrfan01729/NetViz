@@ -444,16 +444,8 @@ http://localhost:5173
 
 Future versions of NetViz can include:
 
-- Distance Vector Routing
-- Bellman-Ford based routing
-- RIP simulation
-- OSPF concepts
-- Advanced network health monitoring
 - Congestion simulation
 - Bandwidth and latency modeling
-- Multiple packet types
-- Network failure simulation
-- Performance analytics
 - More advanced routing protocols
 - Cloud deployment
 - Multi-user collaborative network simulation
