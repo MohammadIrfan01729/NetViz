@@ -106,11 +106,11 @@ NetViz follows a **client-server architecture based on the MERN stack**.
                                  │
                                  ▼
                     ┌──────────────────────────┐
-                    │        MongoDB            │
+                    │        MongoDB           │
                     │                          │
                     │  User Data               │
-                    │  Network Data             │
-                    │  Simulation Data          │
+                    │  Network Data            │
+                    │  Simulation Data         │
                     └──────────────────────────┘
 ```
 
