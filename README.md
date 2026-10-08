@@ -90,7 +90,7 @@ NetViz follows a **client-server architecture based on the MERN stack**, with ro
                          │  Statistics / Event Log      │
                          │  Network Health / Modeling   │
                          │  Topology Presets            │
-                         │  Java Topology Generator    │
+                         │  Java Topology Generator     │
                          └──────────────┬───────────────┘
                                         │
                                   REST API / HTTP
@@ -107,7 +107,7 @@ NetViz follows a **client-server architecture based on the MERN stack**, with ro
                                         │
                                         ▼
                          ┌──────────────────────────────┐
-                         │        MongoDB Atlas          │
+                         │        MongoDB Atlas         │
                          │                              │
                          │  users                       │
                          │  topologies                  │
