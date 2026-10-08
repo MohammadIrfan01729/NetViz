@@ -2,7 +2,7 @@
 
 **NetViz** is an interactive network simulation and visualization platform designed to help users understand **computer network topology, routing algorithms, packet transmission, network statistics, and routing behavior** through a visual interface.
 
-The project combines **Computer Networks concepts with the MERN stack** to provide an interactive environment where users can create network topologies, configure routers and links, simulate packet transmission, and analyze routing information.
+The project combines **Computer Networks concepts with the MERN stack** to provide an interactive environment where users can create network topologies, configure routers and links, simulate packet transmission, analyze routing information, persist their work, and generate network topologies from a controlled Java topology-definition file.
 
 ---
 
@@ -71,47 +71,48 @@ The major objectives of NetViz are:
 
 # 🏗️ System Architecture
 
-NetViz follows a **client-server architecture based on the MERN stack**.
+NetViz follows a **client-server architecture based on the MERN stack**, with routing and packet-simulation logic primarily executed in the browser.
 
 ```text
-                    ┌──────────────────────────┐
-                    │          USER            │
-                    │     Web Browser          │
-                    └────────────┬─────────────┘
-                                 │
-                                 ▼
-                    ┌──────────────────────────┐
-                    │       React Frontend     │
-                    │                          │
-                    │  Network Visualization   │
-                    │  Routing Panel           │
-                    │  Statistics Panel        │
-                    │  Packet Generator        │
-                    │  Routing Table           │
-                    │  Topology Presets        │
-                    └────────────┬─────────────┘
-                                 │
-                          REST API / HTTP
-                                 │
-                                 ▼
-                    ┌──────────────────────────┐
-                    │       Node.js            │
-                    │       Express.js         │
-                    │                          │
-                    │  Authentication          │
-                    │  Network Logic           │
-                    │  Simulation APIs         │
-                    │  Routing Operations      │
-                    └────────────┬─────────────┘
-                                 │
-                                 ▼
-                    ┌──────────────────────────┐
-                    │        MongoDB           │
-                    │                          │
-                    │  User Data               │
-                    │  Network Data            │
-                    │  Simulation Data         │
-                    └──────────────────────────┘
+                         ┌──────────────────────────────┐
+                         │            USER              │
+                         │         Web Browser          │
+                         └──────────────┬───────────────┘
+                                        │
+                                        ▼
+                         ┌──────────────────────────────┐
+                         │       React Frontend         │
+                         │                              │
+                         │  Authentication / Profile    │
+                         │  Interactive React Flow      │
+                         │  Routing Algorithms          │
+                         │  Packet Simulation           │
+                         │  Statistics / Event Log      │
+                         │  Network Health / Modeling   │
+                         │  Topology Presets            │
+                         │  Java Topology Generator    │
+                         └──────────────┬───────────────┘
+                                        │
+                                  REST API / HTTP
+                                        │
+                                        ▼
+                         ┌──────────────────────────────┐
+                         │      Node.js / Express       │
+                         │                              │
+                         │  JWT Authentication          │
+                         │  User Management             │
+                         │  Protected Topology APIs     │
+                         │  Topology CRUD               │
+                         └──────────────┬───────────────┘
+                                        │
+                                        ▼
+                         ┌──────────────────────────────┐
+                         │        MongoDB Atlas          │
+                         │                              │
+                         │  users                       │
+                         │  topologies                  │
+                         │  User-owned topology data    │
+                         └──────────────────────────────┘
 ```
 
 ### Frontend
@@ -131,6 +132,14 @@ Major components include:
 - `RouterNode`
 - `NetworkModeling`
 - `TopologyPresets`
+- `NetworkHealthPanel`
+- `NetworkModelPanel`
+- `JavaTopologyGenerator`
+- `PacketInspector`
+- `PacketEventLog`
+- `Profile`
+- `Login`
+- `Register`
 
 **React Flow** is used to provide the interactive network topology canvas.
 
@@ -226,6 +235,26 @@ The architecture provides a foundation for implementing:
 
 ---
 
+# 4️⃣ Java-Based Topology Generation
+
+NetViz includes a **controlled Java topology-definition parser** that converts supported `.java` files into React Flow nodes and links.
+
+```text
+Java Topology Definition
+          ↓
+Upload / Paste .java File
+          ↓
+Parse & Validate
+          ↓
+Generate React Flow Topology
+          ↓
+Routing / Simulation
+```
+
+The feature supports router roles, IP addresses, priorities, link cost, delay, bandwidth, and packet loss. It parses a defined topology syntax and **does not execute arbitrary Java code**.
+
+---
+
 # 🧠 Core Technologies
 
 ### Frontend
@@ -274,33 +303,60 @@ The architecture provides a foundation for implementing:
 NetViz/
 │
 ├── client/
-│   │
 │   ├── public/
 │   └── src/
+│       ├── algorithms/
+│       │   ├── dijkstra.js
+│       │   ├── bellmanFord.js
+│       │   ├── distanceVector.js
+│       │   └── linkState.js
 │       ├── components/
 │       │   ├── auth/
-│       │   ├── NetworkCanvas/
-│       │   ├── RoutingPanel/
-│       │   ├── StatisticsPanel/
-│       │   ├── PacketGenerator/
-│       │   └── ...
-│       │
+│       │   ├── layout/
+│       │   ├── network/
+│       │   │   ├── NetworkCanvas.jsx
+│       │   │   ├── RouterNode.jsx
+│       │   │   ├── LinkProperties.jsx
+│       │   │   ├── NetworkHealthPanel.jsx
+│       │   │   ├── NetworkModelPanel.jsx
+│       │   │   ├── TopologyPresetsPanel.jsx
+│       │   │   └── JavaTopologyGenerator.jsx
+│       │   ├── packet/
+│       │   ├── routing/
+│       │   └── statistics/
 │       ├── context/
+│       ├── hooks/
 │       ├── pages/
+│       │   ├── Login.jsx
+│       │   ├── Register.jsx
+│       │   ├── Profile.jsx
+│       │   ├── Dashboard.jsx
+│       │   └── Simulator.jsx
 │       ├── services/
 │       ├── utils/
-│       └── ...
+│       │   ├── graphUtils.js
+│       │   ├── packetUtils.js
+│       │   ├── routingTable.js
+│       │   └── javaTopologyParser.js
+│       └── App.jsx
 │
 ├── server/
-│   │
 │   ├── config/
 │   ├── controllers/
+│   │   ├── authController.js
+│   │   └── topologyController.js
 │   ├── models/
+│   │   ├── User.js
+│   │   └── Topology.js
 │   ├── routes/
+│   │   ├── authRoutes.js
+│   │   └── topologyRoutes.js
 │   ├── middleware/
+│   │   └── authMiddleware.js
 │   ├── index.js
 │   └── package.json
 │
+├── .gitignore
 └── README.md
 ```
 
@@ -424,31 +480,50 @@ http://localhost:5173
 
 # 📊 Key Features
 
-- 🔐 User Authentication
-- 🖥️ Interactive Network Canvas
-- 🌐 Router Creation
-- 🔗 Network Link Creation
-- 🧭 Shortest Path Routing
-- 📋 Routing Table Generation
-- 📦 Packet Generation
-- 📈 Network Statistics
-- ⚠️ Packet Loss Monitoring
-- 🗺️ Topology Presets
+- 🔐 User Registration, Login & JWT Authentication
+- 👤 Profile Management & Password Change
+- 🖥️ Interactive React Flow Network Canvas
+- 🌐 Router Creation and Movement
+- 🔗 Network Link Creation and Configuration
+- 🧭 Dijkstra Shortest Path Routing
+- 📐 Bellman-Ford Routing
+- 🔄 Distance Vector Routing
+- 🕸️ Link State Routing
+- 📋 Routing Table & Next-Hop Information
+- 📦 Packet Generation & Logical Packet Simulation
+- ⏱️ Delay Modeling
+- 📶 Bandwidth Modeling
+- ⚠️ Packet Loss Simulation
+- 🚦 Congestion Simulation
+- ❌ Link Failure Simulation
+- ❌ Router Failure Simulation
+- 🔁 Automatic Rerouting
+- 📊 Network Statistics
+- 📝 Packet Event Log
+- 🔎 Packet Inspector
+- ❤️ Network Health Monitoring
 - ⚙️ Network Modeling
-- 📊 Simulation Information
-- 🔌 Extensible Routing Architecture
+- 🗺️ Line, Ring, Mesh & Redundant Topology Presets
+- 💾 Save, Load & Delete Topologies
+- 👥 User-specific Topology Persistence
+- ☕ Java `.java` Topology Generation
+- 🧩 Modular Routing & Simulation Architecture
 
 ---
 
 # 🔮 Future Scope
 
-Future versions of NetViz can include:
+The current planned feature set is complete. Possible future extensions include:
 
-- Congestion simulation
-- Bandwidth and latency modeling
-- More advanced routing protocols
-- Cloud deployment
-- Multi-user collaborative network simulation
+- More advanced routing protocols such as OSPF/RIP-style behavior
+- More detailed traffic and queue modeling
+- Larger-scale network simulation
+- Real-time collaborative topology editing
+- Cloud deployment and production monitoring
+- Advanced analytics and performance comparison
+- Additional topology-import formats
+- More comprehensive automated testing
+- Optional packet animation as a separate visualization mode
 
 ---
 
@@ -465,6 +540,38 @@ NetViz combines concepts from:
 - Distributed Systems
 
 It provides a practical implementation of networking concepts that are normally studied through theoretical diagrams and algorithms.
+
+---
+
+# ✅ Final Feature Scope
+
+```text
+Interactive Topology Editor
+        +
+Four Routing Approaches
+        +
+Packet Simulation
+        +
+Delay / Bandwidth / Loss / Congestion
+        +
+Link & Router Failure
+        +
+Automatic Rerouting
+        +
+Network Health & Modeling
+        +
+Topology Presets
+        +
+Save / Load / Delete
+        +
+User Authentication & Profile
+        +
+Java Topology Generation
+        =
+Complete NetViz Network Simulation Workspace
+```
+
+**Packet animation is intentionally not part of the current feature scope.**
 
 ---
 
@@ -514,6 +621,12 @@ Development • Network Concepts • Testing
 ### Deekshith
 
 Development • Testing • Documentation
+
+---
+
+# 📝 Final Project Description
+
+**NetViz** is a full-stack, browser-based network routing and packet-flow simulator that combines interactive topology modeling, multiple routing algorithms, configurable network conditions, failure-aware automatic rerouting, network-health analysis, persistent user-specific topologies, authentication/profile management, and controlled Java-based topology generation in a unified educational interface.
 
 ---
 
